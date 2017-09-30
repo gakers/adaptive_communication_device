@@ -16,3 +16,11 @@ globals.cpp/.h
 
 txt2speech.pro
    The GUI project is called "txt2speech", hence the name. This just specifies whats included in the project and some basic config stuff
+   
+TO DO
+* Create/add the following source files to the project:
+    * text_to_speech
+    * predict_text
+    * power_control
+    * volume_control
+    * ???
