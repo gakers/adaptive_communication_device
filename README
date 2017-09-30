@@ -6,7 +6,7 @@ main.cpp
 mainwindow.cpp/.h/.ui
     This is the meat of the gui. The constructor creates the GUI and initializes all the buttons and connects
     them to the functions that they call when pressed (read Qt's "Signal and Slots" page for more info)
-    Most of the business logic is included here as well.
+    Most of the business logic is included here as well. The .ui sets up the positioning of all the graphical elements
     
 functions.cpp/.h 
    Nothing here yet, but it's just a place to add whatever functions, etc. that we need
