@@ -5,6 +5,8 @@
 #-------------------------------------------------
 
 QT       += gui
+QT       += widgets texttospeech
+
 CONFIG += console
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -13,13 +15,12 @@ TARGET = txt2speech
 TEMPLATE = app
 
 
-SOURCES += main.cpp\
-        mainwindow.cpp \
-    textbutton.cpp \
-    globals.cpp
+SOURCES += main.cpp \
+        mainwindow.cpp
 
-HEADERS  += mainwindow.h \
-    textbutton.h \
-    globals.h
+HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
+
+DISTFILES += \
+    dict.txt
