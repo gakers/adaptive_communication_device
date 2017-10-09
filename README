@@ -19,8 +19,7 @@ txt2speech.pro
    
 TO DO
 * Create/add the following source files to the project:
-    * text_to_speech
-    * predict_text
+    * text_to_speech - DONE
+    * predict_text - DONE
     * power_control
-    * volume_control
-    * ???
+    * GPIO Pin reads
