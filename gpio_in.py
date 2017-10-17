@@ -11,10 +11,7 @@ else:
     import_result = 'OK'
 
 import os
-#from pygame import mixer
-#import Queue
 import sys
-#from threading import Thread
 import time
 
 #current debounce time
