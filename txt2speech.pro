@@ -5,7 +5,7 @@
 #-------------------------------------------------
 
 QT       += gui
-QT       += widgets texttospeech
+QT       += widgets
 
 CONFIG += console
 
@@ -23,4 +23,10 @@ HEADERS  += mainwindow.h
 FORMS    += mainwindow.ui
 
 DISTFILES += \
-    dict.txt
+    dict.txt \
+    google-books-common-words.txt \
+    phrase_list.txt
+
+INSTALLS    = target
+target.files = txt2speech
+target.path = /home/pi
