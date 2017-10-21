@@ -4,22 +4,28 @@ main.cpp
     All this does is create the MainWindow object which is the GUI
  
 mainwindow.cpp/.h/.ui
-    This is the meat of the gui. The constructor creates the GUI and initializes all the buttons and connects
-    them to the functions that they call when pressed (read Qt's "Signal and Slots" page for more info)
-    Most of the business logic is included here as well. The .ui sets up the positioning of all the graphical elements
+    The meat of the gui
+    Constructor creates the GUI and initializes a screen
+    * Phrase window - lists all "common phrases", select one and it is immediately spoken
+    * Keyboard window - displays a keyboard, uses auto-complete
+    * Menu window - displays some menu options
+        * Power Down
+        * Change Phrases - select a phrase from the Phrase Window and replace it with a new one
+        * Return - Exit the menu
+    Predictive Text is accomplished by reading a file containing all words accompanied by "scores" of their frequency in the english language.
+    This list of words/scores is read to an array, and each time a letter is pressed, the array is searched for matching words,
+    all matching words are sorted by score and highest 5 scoring words are selected and presented to the user as options.
+    (THIS WILL BE CHANGED SOON TO MORE EFFICIENT METHOD)
     
-functions.cpp/.h 
-   Nothing here yet, but it's just a place to add whatever functions, etc. that we need
-   
-globals.cpp/.h
-   Same as functions, not actually using it but I just like having a place to put global variables
+    The .ui file sets up the positioning of most graphical elements
+    
 
 txt2speech.pro
    The GUI project is called "txt2speech", hence the name. This just specifies whats included in the project and some basic config stuff
    
 TO DO
 * Create/add the following source files to the project:
-    * text_to_speech - DONE
+    * text_to_speech - DONE?
     * predict_text - DONE
     * power_control
     * GPIO Pin reads
