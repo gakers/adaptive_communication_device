@@ -11,6 +11,18 @@ MainWindow::MainWindow( QWidget *parent ) : QMainWindow( parent ), ui( new Ui::M
     ui->setupUi(this);
     setup_common();
 
+    /* Create dictionary from file */
+    QStringList line;
+    QFile f("/home/gakers/txt2speech/google-books-common-words.txt");
+    f.open(QIODevice::ReadOnly);
+    QTextStream in(&f);
+    while( !in.atEnd() ) {
+        line = in.readLine().split("\t");
+        dict << line.at(0);
+        score <<line.at(1).toLong();
+    }
+    f.close();
+
 }
 
 void MainWindow::text_to_speech(QStringList sentence) {
@@ -29,6 +41,7 @@ void MainWindow::text_to_speech(QStringList sentence) {
  *
  */
 void MainWindow::setup_common() {
+    ui->title->setText("Common Phrases");
     ui->curMsg->hide();
     ui->keyboard->setRowCount(6);
     ui->keyboard->setColumnCount(5);
@@ -114,6 +127,7 @@ void MainWindow::itemPressed(int row, int column) {
  */
 
 void MainWindow::setup_keyboard() {
+    ui->title->setText("Keyboard");
     ui->curMsg->show();
     // Create rows and columns
     ui->keyboard->setRowCount(6);
@@ -193,14 +207,13 @@ void MainWindow::update_words(QString str) {
             ui->keyboard->item(4, 3)->setBackgroundColor(QColor(255, 255, 255));
         }
         if(count >= 3) {
-            ui->keyboard->item(5, 0)->setText(words.at(3).toUpper());
+            ui->keyboard->item(5, 0)->setText(words.at(2).toUpper());
             ui->keyboard->item(5, 0)->setBackgroundColor(QColor(255, 255, 255));
         }
         if(count >= 4) {
-            ui->keyboard->item(5, 3)->setText(words.at(4).toUpper());
+            ui->keyboard->item(5, 3)->setText(words.at(3).toUpper());
             ui->keyboard->item(5, 3)->setBackgroundColor(QColor(255, 255, 255));
         }
-
         /*
         if(count >= 3) {
             ui->keyboard->item(4, 6)->setText(words.at(2).toUpper());
@@ -215,6 +228,7 @@ void MainWindow::update_words(QString str) {
             ui->keyboard->item(5, 3)->setBackgroundColor(QColor(255, 255, 255));
         }*/
     }
+
 }
 
 void MainWindow::clear_words() {
@@ -231,9 +245,9 @@ void MainWindow::clear_words() {
     ui->keyboard->item(5, 3)->setBackgroundColor(QColor(225, 225, 225));
 }
 QStringList MainWindow::predict_text(QString str) {
+    /*
     QStringList dict, ret, line;
     QVector<int> score;
-
     QFile f("/home/gakers/txt2speech/google-books-common-words.txt");
     f.open(QIODevice::ReadOnly);
     QTextStream in(&f);
@@ -243,9 +257,11 @@ QStringList MainWindow::predict_text(QString str) {
         score <<line.at(1).toInt();
     }
     f.close();
+    */
 
+    QStringList ret;
     /* indices of 5 highest scoring words */
-    QVector<int> w(5);
+    QVector<long> w(5);
     w[0] = dict.size() - 1;
     w[1] = dict.size() - 1;
     w[2] = dict.size() - 1;
@@ -341,7 +357,6 @@ void MainWindow::keyPressed( int row, int column ) {
     ui->curMsg->setText( tmp );
 }
 
-
 /*************************************************************************************************************************
  *  MENU
  *
@@ -351,6 +366,7 @@ void MainWindow::keyPressed( int row, int column ) {
  *
  */
 void MainWindow::setup_menu() {
+    ui->title->setText("Menu");
     ui->curMsg->hide();
     ui->keyboard->setRowCount(5);
     ui->keyboard->setColumnCount(1);
@@ -388,13 +404,242 @@ void MainWindow::destroy_menu() {
     ui->curMsg->show();
 }
 
+void MainWindow::change_phrases() {
+    /* set up phrase window */
+    destroy_menu();
+    ui->title->setText("Select Phrase to Change");
+    ui->curMsg->hide();
+    ui->keyboard->setRowCount(6);
+    ui->keyboard->setColumnCount(5);
+
+    // Formatting
+    ui->keyboard->verticalHeader()->hide();
+    ui->keyboard->horizontalHeader()->hide();
+    ui->keyboard->horizontalHeader()->setSectionResizeMode( QHeaderView::Stretch );
+    ui->keyboard->verticalHeader()->setSectionResizeMode( QHeaderView::Stretch );
+    QFont keyFont;
+        keyFont.setPointSize( 14 );
+        keyFont.setFamily( "Arial" );
+        keyFont.setBold( true );
+    ui->curMsg->setFont( keyFont );
+
+    /* read phrases list */
+    item_list.resize(6);
+    QFile f("/home/gakers/txt2speech/phrase_list.txt");
+    f.open(QIODevice::ReadOnly);
+    QTextStream in(&f);
+    for(int i=0; i<4; i++) { /* read saved phrases into board contents list */
+        item_list[i].resize(5);
+        for(int j=0; j<5; j++) {
+            item_list[i][j] = in.readLine().toUpper();
+        }
+    }
+    f.close();
+    int k = 0;
+    for(int i=4; i<6; i++) {
+        item_list[i].resize(5);
+        for(int j=0; j<5; j++) {
+            item_list[i][j] = "";
+        }
+    }
+    for( int i=0; i < ui->keyboard->rowCount(); i++ ) {
+        for( int j=0; j < ui->keyboard->columnCount(); j++ ) {
+            QTableWidgetItem *itemCell = ui->keyboard->item( i, j );
+            if(!itemCell) {
+                itemCell = new QTableWidgetItem;
+                itemCell->setTextAlignment(Qt::AlignCenter);
+                itemCell->setFont(keyFont);
+                itemCell->setFlags( itemCell->flags() & ~Qt::ItemIsEditable );
+                ui->keyboard->setItem( i, j, itemCell );
+            }
+            itemCell->setText( item_list[i][j] );
+
+            if( itemCell->text() == "KEYBOARD" )
+                ui->keyboard->item(i, j)->setBackgroundColor(QColor(233, 200, 80));
+            else if ( itemCell->text() == "")
+                ui->keyboard->item(i, j)->setBackgroundColor(QColor(230, 230, 230));
+        }
+    }
+    ui->keyboard->item(3, 4)->setText("CANCEL"); /* add cancel button */
+    connect( ui->keyboard, SIGNAL( cellClicked( int,int ) ), this, SLOT( custom_itemPressed( int,int ) ) );
+}
+
+void MainWindow::destroy_custom_phrases() {
+    disconnect( ui->keyboard, SIGNAL( cellClicked( int,int ) ), this, SLOT( custom_itemPressed( int,int ) ) );
+    ui->keyboard->clearContents();
+    ui->curMsg->show();
+}
+
+void MainWindow::set_phrase() {
+    /* set up keyboard */
+    destroy_custom_phrases();
+    ui->title->setText("Enter new phrase");
+    ui->curMsg->show();
+    /* Create rows and columns */
+    ui->keyboard->setRowCount(6);
+    ui->keyboard->setColumnCount(9);
+    /* Formatting */
+    ui->keyboard->verticalHeader()->hide();
+    ui->keyboard->horizontalHeader()->hide();
+    ui->keyboard->horizontalHeader()->setSectionResizeMode( QHeaderView::Stretch );
+    ui->keyboard->verticalHeader()->setSectionResizeMode( QHeaderView::Stretch );
+    QFont keyFont;
+        keyFont.setPointSize( 14 );
+        keyFont.setFamily( "Arial" );
+        keyFont.setBold( true );
+    ui->curMsg->setFont( keyFont );
+
+    /* Set up keys */
+    for(int i=0; i < ui->keyboard->rowCount(); i++) {
+        for(int j=0; j < ui->keyboard->columnCount(); j++) {
+            QTableWidgetItem *keyCell = ui->keyboard->item(i, j);
+            if(!keyCell) {
+                keyCell = new QTableWidgetItem;
+                keyCell->setTextAlignment(Qt::AlignCenter);
+                keyCell->setFont(keyFont);
+                keyCell->setFlags( keyCell->flags() & ~Qt::ItemIsEditable );
+                ui->keyboard->setItem(i, j, keyCell);
+            }
+            keyCell->setText(customKeyboard[i][j]);
+            if((keyCell->text() == "ACCEPT") || (keyCell->text() == "CLEAR") || (keyCell->text() == "BACKSPACE") || (keyCell->text().contains("WORD")) || (keyCell->text() == "CANCEL") || (keyCell->text() == " ")) {
+                ui->keyboard->setSpan(i, j, 1, 3);
+            }
+            if( keyCell->text() == "ACCEPT" )
+                ui->keyboard->item(i, j)->setBackgroundColor(QColor(90, 200, 90));
+            else if( keyCell->text() == "CLEAR")
+                ui->keyboard->item(i, j)->setBackgroundColor(QColor(233, 90, 90));
+            else if( keyCell->text() == "BACKSPACE")
+                ui->keyboard->item(i, j)->setBackgroundColor(QColor(240, 255, 90));
+            else if( keyCell->text() == "CANCEL")
+                ui->keyboard->item(i, j)->setBackgroundColor(QColor(233, 200, 50));
+            else if( (keyCell->text().contains("WORD")) || (keyCell->text() == " "))
+                ui->keyboard->item(i, j)->setBackgroundColor(QColor(225, 225, 225));
+        }
+    }
+    connect(ui->keyboard, SIGNAL(cellClicked(int, int)), this, SLOT(custom_keyPressed(int, int)));
+    clear_words();
+}
+
+void MainWindow::destroy_custom_keyboard() {
+    /* set spanning to default */
+    for( int i=0; i < ui->keyboard->rowCount(); i++ ) {
+        for( int j=0; j < ui->keyboard->columnCount(); j++ ) {
+            ui->keyboard->setSpan( i, j, 1, 1 );
+        }
+    }
+    disconnect(ui->keyboard, SIGNAL(cellClicked(int, int)), this, SLOT(custom_keyPressed(int, int)));
+    ui->keyboard->clearContents();
+    ui->curMsg->hide();
+    word.clear();
+}
+
+void MainWindow::update_phrases(QString phrase) {
+    /* read current phrases list */
+    QVector<QString> tmplist(20);
+    QFile f("/home/gakers/txt2speech/phrase_list.txt");
+    f.open(QIODevice::ReadOnly);
+    QTextStream in(&f);
+    for(int i=0; i<20; i++) { /* read saved phrases into list */
+        tmplist[i] = in.readLine().toUpper();
+    }
+    f.close();
+
+    /* replace target phrase with new phrase */
+    f.open(QIODevice::WriteOnly);
+    QTextStream out(&f);
+    tmplist[which_word] = phrase;
+    for(int i=0; i<20; i++) { /* write new list to file */
+        out << tmplist[i] <<"\n";
+    }
+    f.close();
+}
+
+/**** Menu slots ****/
+
+/* Menu item selection */
 void MainWindow::menuPressed(int row, int column) {
     QString cmd = menu_list[row];
     if(cmd == "POWER OFF") { /* power off device */
-        //system("shutdown now");
+        system("sudo shutdown now");
     }
+    else if (cmd == "CHANGE WORDS") { /* customize phrases */
+        change_phrases();
+    }
+
     else if(cmd == "RETURN") { /* exit the menu */
         destroy_menu();
         setup_keyboard();
     }
+}
+
+/* Edit phrase selection */
+void MainWindow::custom_itemPressed(int row, int column) {
+    QString cmd = item_list[row][column];
+    if( cmd == "KEYBOARD") { /* Go back to menu */
+        destroy_custom_phrases();
+        setup_menu();
+    }
+    else if (cmd == "") {}
+    else {               /* Phrase selected */
+        which_word = (row*5)+ column; /* index of phrase to change */
+        set_phrase();
+    }
+}
+
+/* Write new phrase */
+void MainWindow::custom_keyPressed(int row, int column) {
+    QString cmd = customKeyboard[row][column];
+    if(cmd == "SPACE") {
+        if( word.size() > 0 ) {
+            msg << word ;
+            word.clear();
+            clear_words();
+        }
+    }
+    else if(cmd == "BACKSPACE") {
+        if( word.size() > 0 ) {
+            word.remove( ( word.size() - 1 ), 1 );
+            update_words( word );
+        }
+        /* Handle backspace-ing to previous word */
+        else if (msg.size() > 0) {
+            word = msg.takeLast();
+            update_words( word );
+        }
+    }
+    else if (cmd == "CLEAR") {
+        word.clear();
+        msg.clear();
+        clear_words();
+    }
+    else if (cmd == "ACCEPT") {
+        msg << word;               /* done typing - update phrase list */
+        QString phrase = msg.join(" ");
+        update_phrases(phrase);
+        word.clear();
+        msg.clear();
+        destroy_custom_keyboard(); /* go back to menu */
+        setup_menu();
+    }
+    else if (cmd == "CANCEL") {
+        destroy_custom_keyboard();
+        setup_menu();
+    }
+    else if (cmd.contains("WORD")) {
+        QString tmp = ui->keyboard->item(row, column)->text();
+        if(tmp.size() > 0) {
+            word.clear();
+            msg << tmp;
+            clear_words();
+        }
+    }
+    else if(cmd == "NULL") { } // Do nothing, shouldn't ever happen anyway
+    else {                       // Just add a character to current word
+        word.append( cmd );
+        update_words( word );
+    }
+    QString tmp = msg.join(" ");
+    tmp.append(" ");
+    tmp.append(word);
+    ui->curMsg->setText(tmp);
 }
