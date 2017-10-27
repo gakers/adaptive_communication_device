@@ -22,10 +22,14 @@ mainwindow.cpp/.h/.ui
 
 txt2speech.pro
    The GUI project is called "txt2speech", hence the name. This just specifies whats included in the project and some basic config stuff
+Speech.py
+    The program takes any phrase as an input goes through the steps required to use the pttsx library to say the phrase.
+gpio.cpp
+    Not yet working - Initializes the gpio inputs and waits for one of the buttons to be pressed. Returns the GPIO number 
    
 TO DO
 * Create/add the following source files to the project:
-    * text_to_speech - DONE?
+    * text_to_speech - DONE
     * predict_text - DONE
     * power_control
     * GPIO Pin reads
