@@ -32,22 +32,27 @@ int main(void)
 		delay(800);
 		if(digitalRead(up))
 			{
+				delay(800);
 				return up;
 			}
 		else if(digitalRead(down))
 			{
+				delay(800);
 				return down;
 			}
 		else if(digitalRead(left))
 			{
+				delay(800);
 				return left;
 			}
 		else if(digitalRead(right))
 			{
+				delay(800);
 				return right;
 			}
 		else if(digitalRead(select))
 			{
+				delay(800);
 				return select;
 			}
 	}
