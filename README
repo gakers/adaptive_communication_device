@@ -12,10 +12,7 @@ mainwindow.cpp/.h/.ui
         * Power Down
         * Change Phrases - select a phrase from the Phrase Window and replace it with a new one
         * Return - Exit the menu
-    Predictive Text is accomplished by reading a file containing all words accompanied by "scores" of their frequency in the english language.
-    This list of words/scores is read to an array, and each time a letter is pressed, the array is searched for matching words,
-    all matching words are sorted by score and highest 5 scoring words are selected and presented to the user as options.
-    (THIS WILL BE CHANGED SOON TO MORE EFFICIENT METHOD)
+    
     
     The .ui file sets up the positioning of most graphical elements
     
@@ -31,5 +28,5 @@ TO DO
 * Create/add the following source files to the project:
     * text_to_speech - DONE
     * predict_text - DONE
-    * power_control
-    * GPIO Pin reads
+    * power_control - DONE
+    * GPIO Pin reads - DONE
