@@ -12,17 +12,19 @@ MainWindow::MainWindow( QWidget *parent ) : QMainWindow( parent ), ui( new Ui::M
     setup_common();
 
     /* Create dictionary from file */
-    QStringList line;
-    QFile f("/home/gakers/txt2speech/google-books-common-words.txt");
-    f.open(QIODevice::ReadOnly);
-    QTextStream in(&f);
-    while( !in.atEnd() ) {
-        line = in.readLine().split("\t");
-        dict << line.at(0);
-        score <<line.at(1).toLong();
-    }
-    f.close();
+    build_corpus("/home/gakers/txt2speech/google-books-common-words.txt", head);
 
+    /* Start GPIO scanning thread */
+    gpioScanner *scanner = new gpioScanner;
+    scanner->moveToThread(&scannerThread);
+    connect(&scannerThread, &QThread::finished, scanner, &QObject::deleteLater);
+    connect(this, SIGNAL(start_scanning()), scanner, SLOT(doScanning()));
+    connect(scanner, SIGNAL(button_pressed(QString)), this, SLOT(scan_output(QString)));
+    scannerThread.start();
+    curPosition.x = 0;
+    curPosition.y = 0;
+    ui->keyboard->setCurrentCell(curPosition.y, curPosition.x);
+    emit start_scanning();
 }
 
 void MainWindow::text_to_speech(QStringList sentence) {
@@ -30,6 +32,28 @@ void MainWindow::text_to_speech(QStringList sentence) {
     //QStringList tmp = sentence;
     //speech.say(tmp.join(" "));
     //spd-say tmp.join;
+}
+
+QVector<QString> MainWindow::predict_text(QString str) {
+    QVector<QString> ret;
+    head.get_words_starting_with(str, 5, ret);
+    return ret;
+}
+
+void MainWindow::scan_output(QString button) {
+    if(button == "SELECT") {
+        ui->keyboard->cellActivated(curPosition.y, curPosition.x);
+    } else {
+        if(button == "UP")
+            curPosition.y++;
+        else if(button == "DOWN")
+            curPosition.y--;
+        else if(button == "RIGHT")
+            curPosition.x++;
+        else if(button == "LEFT")
+            curPosition.x--;
+        ui->keyboard->setCurrentCell(curPosition.y, curPosition.x);
+    }
 }
 
 /*************************************************************************************************************************
@@ -196,22 +220,22 @@ void MainWindow::destroy_keyboard() {
 void MainWindow::update_words(QString str) {
     clear_words();
     if(str.size() > 0) {
-        QStringList words = predict_text(str);
+        QVector<QString> words = predict_text(str);
         int count = words.size();
         if(count >= 1) {
-            ui->keyboard->item(4, 0)->setText(words.at(0).toUpper());
+            ui->keyboard->item(4, 0)->setText(words[0].toUpper());
             ui->keyboard->item(4, 0)->setBackgroundColor(QColor(255, 255, 255));
         }
         if(count >= 2) {
-            ui->keyboard->item(4, 3)->setText(words.at(1).toUpper());
+            ui->keyboard->item(4, 3)->setText(words[1].toUpper());
             ui->keyboard->item(4, 3)->setBackgroundColor(QColor(255, 255, 255));
         }
         if(count >= 3) {
-            ui->keyboard->item(5, 0)->setText(words.at(2).toUpper());
+            ui->keyboard->item(5, 0)->setText(words[2].toUpper());
             ui->keyboard->item(5, 0)->setBackgroundColor(QColor(255, 255, 255));
         }
         if(count >= 4) {
-            ui->keyboard->item(5, 3)->setText(words.at(3).toUpper());
+            ui->keyboard->item(5, 3)->setText(words[3].toUpper());
             ui->keyboard->item(5, 3)->setBackgroundColor(QColor(255, 255, 255));
         }
         /*
@@ -244,57 +268,6 @@ void MainWindow::clear_words() {
     ui->keyboard->item(5, 0)->setBackgroundColor(QColor(225, 225, 225));
     ui->keyboard->item(5, 3)->setBackgroundColor(QColor(225, 225, 225));
 }
-QStringList MainWindow::predict_text(QString str) {
-    /*
-    QStringList dict, ret, line;
-    QVector<int> score;
-    QFile f("/home/gakers/txt2speech/google-books-common-words.txt");
-    f.open(QIODevice::ReadOnly);
-    QTextStream in(&f);
-    while( !in.atEnd() ) {
-        line = in.readLine().split("\t");
-        dict << line.at(0);
-        score <<line.at(1).toInt();
-    }
-    f.close();
-    */
-
-    QStringList ret;
-    /* indices of 5 highest scoring words */
-    QVector<long> w(5);
-    w[0] = dict.size() - 1;
-    w[1] = dict.size() - 1;
-    w[2] = dict.size() - 1;
-    w[3] = dict.size() - 1;
-    w[4] = dict.size() - 1;
-
-    for( int i=0; i<dict.size(); i++ ) { /* add top 5 words to list */
-        if( dict.at(i).startsWith(str, Qt::CaseInsensitive) ) {
-            if( score[i] > score[w[0]] ) {       /* new highest scoring word */
-                w[4] = w[3]; w[3] = w[2]; w[2] = w[1]; w[1] = w[0]; w[0] = i;
-            }
-            else if( score [i] > score[w[1]] ) { /* new second-highest scoring word */
-                w[4] = w[3]; w[3] = w[2]; w[2] = w[1]; w[1] = i;
-            }
-            else if( score[i] > score[w[2]] ) {  /* new third-highest scoring word */
-                w[4] = w[3]; w[3] = w[2]; w[2] = i;
-            }
-            else if( score[i] > score[w[3]] ) {
-                w[4] = w[3]; w[3] = i;
-            }
-            else if( score[i] > score[w[4]] ) {
-                w[4] = i;
-            }
-        }
-    }
-    for( int i=0; i<5; i++ ) {
-        if( w[i] != (dict.size() - 1) ) {
-            ret << dict.at(w[i]);
-        }
-    }
-    return ret;
-}
-
 
 //SLOTS
 void MainWindow::keyPressed( int row, int column ) {

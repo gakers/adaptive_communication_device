@@ -17,10 +17,14 @@ TEMPLATE = app
 
 SOURCES += main.cpp \
         mainwindow.cpp \
-    corpus.cpp
+    corpus.cpp \
+    gpio.cpp \
+    gpioscanner.cpp
 
 HEADERS  += mainwindow.h \
-    corpus.h
+    corpus.h \
+    gpio.h \
+    gpioscanner.h
 
 FORMS    += mainwindow.ui
 
@@ -32,3 +36,6 @@ DISTFILES += \
 INSTALLS    = target
 target.files = txt2speech
 target.path = /home/pi
+
+RESOURCES += \
+    resources.qrc

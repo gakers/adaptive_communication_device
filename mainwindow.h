@@ -9,21 +9,30 @@
 #include <QFont>
 #include <QFile>
 #include <QTextStream>
-//#include <QTextToSpeech>
+#include <QThread>
+#include "corpus.h"
+#include "gpio.h"
+#include "gpioscanner.h"
 
 namespace Ui {
 class MainWindow;
 }
+    struct position {
+        int x;
+        int y;
+    };
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+    QThread scannerThread;
 
 public:
     ~MainWindow();
     explicit MainWindow(QWidget *parent = 0);
     void text_to_speech(QStringList sentence);
-
+    QVector<QString> predict_text(QString str);
+     
     /* CommonBoard Functions */
     void setup_common();
     void destroy_common();
@@ -33,7 +42,6 @@ public:
     void destroy_keyboard();
     void update_words(QString word);
     void clear_words();
-    QStringList predict_text(QString str);
 
     /* Menu Functions */
     void setup_menu();
@@ -51,8 +59,15 @@ public slots:
     void menuPressed(int row, int column);
     void custom_itemPressed(int row, int column);
     void custom_keyPressed(int row, int column);
+    void scan_output(QString button);
+
+signals:
+    void start_scanning();
+
 private:
     Ui::MainWindow *ui;
+    position curPosition;
+    CorpusNode head;
     QVector<long> score;
     QStringList msg, dict;
     QString word;
