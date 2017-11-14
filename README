@@ -11,6 +11,8 @@ mainwindow.cpp/.h/.ui
     * Menu window - displays some menu options
         * Power Down
         * Change Phrases - select a phrase from the Phrase Window and replace it with a new one
+        * Change Input delay - customize input delay
+        * Change Voice - modify voice, pitch, and tempo
         * Return - Exit the menu
     
     
@@ -19,10 +21,10 @@ mainwindow.cpp/.h/.ui
 
 txt2speech.pro
    The GUI project is called "txt2speech", hence the name. This just specifies whats included in the project and some basic config stuff
-Speech.py
+Speech.py (Obsolete, "espeak" invoked directly by program)
     The program takes any phrase as an input goes through the steps required to use the pttsx library to say the phrase.
 gpio.cpp
-    Not yet working - Initializes the gpio inputs and waits for one of the buttons to be pressed. Returns the GPIO number 
+    Initializes the gpio inputs and waits for one of the buttons to be pressed. Returns the GPIO number 
    
 TO DO
 * Create/add the following source files to the project:
