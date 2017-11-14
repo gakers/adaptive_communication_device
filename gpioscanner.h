@@ -3,13 +3,14 @@
 #include <QObject>
 #include <QThread>
 #include "gpio.h"
+#include "mainwindow.h"
 
 class gpioScanner : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit gpioScanner();
+    explicit gpioScanner(QObject *parent = 0);
     
 public slots:
     void doScanning();

@@ -31,7 +31,8 @@ FORMS    += mainwindow.ui
 DISTFILES += \
     dict.txt \
     google-books-common-words.txt \
-    phrase_list.txt
+    phrase_list.txt \
+    delay.txt
 
 INSTALLS    = target
 target.files = txt2speech

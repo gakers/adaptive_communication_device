@@ -1,6 +1,7 @@
-<!DOCTYPE RCC><RCC version="1.0">
-<qresource prefix="/home/gakers/txt2speech">
-		<file>phrase_list.txt</file>
-		<file>google-books-common-words.txt</file>
-</qresource>
+<RCC>
+    <qresource prefix="/">
+        <file>phrase_list.txt</file>
+        <file>google-books-common-words.txt</file>
+        <file>TextToSpeech.py</file>
+    </qresource>
 </RCC>
