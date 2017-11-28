@@ -23,34 +23,44 @@ MainWindow::MainWindow( QWidget *parent ) : QMainWindow( parent ), ui( new Ui::M
     ui->keyboard->setLayout(hbl);
     ui->menuBar->hide();
     ui->mainToolBar->hide();
+
     /* Create dictionary from file */
     build_corpus(":/google-books-common-words.txt", head);
 
     /* Get input delay from file */
-    QFile f("/home/gakers/txt2speech/delay.settings");
-    f.open(QIODevice::ReadOnly);
-    QTextStream in(&f);
-    delay = in.readLine().toInt();
-    f.close();
+    QFile f("/home/pi/delay.settings");
+    if(f.open(QIODevice::ReadOnly)) {
+        QTextStream in(&f);
+        delay = in.readLine().toInt();
+        f.close();
+    } else {
+        delay = 1000;
+    }
 
     /* get voice settings from file */
-    QFile f1("/home/gakers/txt2speech/voice.settings");
-    f1.open(QIODevice::ReadOnly);
-    QTextStream in1(&f1);
-    QString set, val;
-    QStringList tmp;
-    while(!in1.atEnd()) {
-        tmp = in1.readLine().split(" ");
-        if(tmp.at(0) == "NAME")
-            speechVoice.name = tmp.at(1);
-        else if(tmp.at(0) == "PITCH")
-            speechVoice.pitch = tmp.at(1).toInt();
-        else if(tmp.at(0) == "SPEED")
-            speechVoice.speed = tmp.at(1).toInt();
+    QFile f1("/home/pi/voice.settings");
+    if(f1.open(QIODevice::ReadOnly)) {
+        QTextStream in1(&f1);
+        QString set, val;
+        QStringList tmp;
+        while(!in1.atEnd()) {
+            tmp = in1.readLine().split(" ");
+            if(tmp.at(0) == "NAME")
+                speechVoice.name = tmp.at(1);
+            else if(tmp.at(0) == "PITCH")
+                speechVoice.pitch = tmp.at(1).toInt();
+            else if(tmp.at(0) == "SPEED")
+                speechVoice.speed = tmp.at(1).toInt();
+        }
+        f1.close();
+    } else {
+        speechVoice.name = "en-us";
+        speechVoice.pitch = 80;
+        speechVoice.speed = 100;
     }
-    f1.close();
+
     /* Start GPIO scanning thread */
-    gpioScanner *scanner = new gpioScanner;
+    scanner = new gpioScanner;
     scanner->moveToThread(&scannerThread);
     connect(&scannerThread, &QThread::finished, scanner, &QObject::deleteLater);
     connect(this, SIGNAL(start_scanning()), scanner, SLOT(doScanning()));
@@ -59,10 +69,11 @@ MainWindow::MainWindow( QWidget *parent ) : QMainWindow( parent ), ui( new Ui::M
     curPosition.x = 0;
     curPosition.y = 0;
     ui->keyboard->setCurrentCell(curPosition.y, curPosition.x);
-    //emit start_scanning();
+    scanner->set_delay(delay);
+    emit start_scanning();
 }
 
-int MainWindow::get_delay() { return delay; }
+int MainWindow::get_delay() {  return delay; }
 
 void MainWindow::text_to_speech(QStringList sentence) {
     QProcess p;
@@ -84,7 +95,6 @@ QVector<QString> MainWindow::predict_text(QString str) {
 }
 
 void MainWindow::scan_output(QString button) {
-    qDebug() << button;
     if(button == "SELECT") {
         ui->keyboard->cellActivated(curPosition.y, curPosition.x);
     } else {
@@ -150,7 +160,7 @@ void MainWindow::setup_common() {
 
     /* read phrases list */
     item_list.resize(6);
-    QFile f("/home/gakers/txt2speech/phrase_list.txt");
+    QFile f("/home/pi/phrase_list.txt");
     f.open(QIODevice::ReadOnly);
     QTextStream in(&f);
     for(int i=0; i<4; i++) { /* read saved phrases into board contents list */
@@ -414,7 +424,7 @@ void MainWindow::setup_menu() {
     curPosition.y = 0;
     ui->title->setText("Menu");
     ui->curMsg->hide();
-    ui->keyboard->setRowCount(5);
+    ui->keyboard->setRowCount(6);
     ui->keyboard->setColumnCount(1);
 
     // Formatting
@@ -473,7 +483,7 @@ void MainWindow::change_phrases() {
 
     /* read phrases list */
     item_list.resize(6);
-    QFile f("/home/gakers/txt2speech/phrase_list.txt");
+    QFile f("/home/pi/phrase_list.txt");
     f.open(QIODevice::ReadOnly);
     QTextStream in(&f);
     for(int i=0; i<4; i++) { /* read saved phrases into board contents list */
@@ -585,7 +595,7 @@ void MainWindow::destroy_custom_keyboard() {
 void MainWindow::update_phrases(QString phrase) {
     /* read current phrases list */
     QVector<QString> tmplist(20);
-    QFile f("/home/gakers/txt2speech/phrase_list.txt");
+    QFile f("/home/pi/phrase_list.txt");
     f.open(QIODevice::ReadOnly);
     QTextStream in(&f);
     for(int i=0; i<20; i++) { /* read saved phrases into list */
@@ -636,6 +646,7 @@ void MainWindow::setup_delay() {
             itemCell->setText(delay_list[i]);
         }
     ui->curMsg->setText("CURRENT DELAY: " + QString::number(delay) + "ms");
+    temp_delay = delay;
     connect( ui->keyboard, SIGNAL( cellActivated( int,int ) ), this, SLOT( delayPressed( int,int ) ) );
 }
 void MainWindow::destroy_delay() {
@@ -678,10 +689,11 @@ void MainWindow::setup_voice() {
                 ui->keyboard->item(i, 0)->setBackgroundColor(QColor(90, 200, 90));
             else
                 ui->keyboard->item(i, 0)->setBackgroundColor(QColor(240, 240, 255));
-            qDebug() << "got here";
             itemCell->setText(voice_list[i]);
         }
-    ui->curMsg->setText("CURRENT DELAY: " + QString::number(delay) + "ms");
+    ui->curMsg->setText("VOICE: "+  speechVoice.name+\
+                        " PITCH: "+ QString::number(speechVoice.pitch)+\
+                        " SPEED: "+ QString::number(speechVoice.speed));
     connect( ui->keyboard, SIGNAL( cellActivated( int,int ) ), this, SLOT( voicePressed( int,int ) ) );
 }
 void MainWindow::destroy_voice() {
@@ -706,6 +718,9 @@ void MainWindow::menuPressed(int row, int column) {
     else if(cmd == "CHANGE VOICE") { /* set new input delay */
         destroy_menu();
         setup_voice();
+    }
+    else if(cmd == "EXIT") { /* set new input delay */
+        this->~MainWindow();
     }
     else if(cmd == "RETURN") { /* exit the menu */
         destroy_menu();
@@ -788,7 +803,6 @@ void MainWindow::custom_keyPressed(int row, int column) {
 /* Configure input delay */
 void MainWindow::delayPressed(int row, int column) {
     QString cmd = delay_list[row];
-    int tmp = delay;
     if(cmd == "INCREASE DELAY") { /* increase delay by 100ms */
         delay += 100;
     }
@@ -805,7 +819,7 @@ void MainWindow::delayPressed(int row, int column) {
         }
     }
     else if(cmd == "ACCEPT") { /* set new input delay */
-        QFile f("/home/gakers/txt2speech/delay.settings");
+        QFile f("/home/pi/delay.settings");
         f.open(QIODevice::WriteOnly);
         QTextStream out(&f);
         out << delay;
@@ -814,10 +828,12 @@ void MainWindow::delayPressed(int row, int column) {
         setup_menu();
     }
     else if(cmd == "CANCEL") { /* exit the menu */
-        delay = tmp;
+        delay = temp_delay;
+        scanner->set_delay(delay);
         destroy_delay();
         setup_menu();
     }
+    scanner->set_delay(delay);
     ui->curMsg->setText("CURRENT DELAY: " + QString::number(delay) + "ms");
 }
 
@@ -856,7 +872,7 @@ void MainWindow::voicePressed(int row, int column) {
             text_to_speech(sentence);
     }
     else if(cmd == "ACCEPT") { /* set new input delay */
-        QFile f("/home/gakers/txt2speech/voice.settings");
+        QFile f("/home/pi/voice.settings");
         f.open(QIODevice::WriteOnly);
         QTextStream out(&f);
         out << "NAME " + speechVoice.name + "\n";

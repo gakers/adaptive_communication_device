@@ -82,13 +82,15 @@ public slots:
     void custom_keyPressed(int row, int column);
     void delayPressed(int row, int column);
     void voicePressed(int row, int column);
+
 signals:
     void start_scanning();
 
 private:
     Ui::MainWindow *ui;
-    int delay;
     position curPosition;
+    int delay, temp_delay;
+    gpioScanner *scanner;
     CorpusNode head;
     QVector<long> score;
     QStringList msg, dict;
@@ -104,7 +106,7 @@ private:
                                     {"BACKSPACE", "NULL", "NULL","CLEAR", "NULL", "NULL", "SPEAK", "NULL", "NULL"},
                                     {"WORD1", "NULL", "NULL", "WORD2", "NULL", "NULL", "MENU", "NULL", "NULL"},
                                     {"WORD3", "NULL", "NULL", "WORD4", "NULL", "NULL", "PHRASES", "NULL", "NULL"}};
-    QVector< QString > menu_list{"POWER OFF", "CHANGE WORDS", "CHANGE INPUT DELAY", "CHANGE VOICE", "RETURN"};
+    QVector< QString > menu_list{"POWER OFF", "CHANGE WORDS", "CHANGE INPUT DELAY", "CHANGE VOICE", "EXIT", "RETURN"};
     QVector< QString > delay_list{"INCREASE DELAY", "DECREASE DELAY", "TEST", "ACCEPT", "CANCEL"};
     QVector< QString > voice_list{"CHANGE VOICE", "INCREASE SPEED", "DECREASE SPEED", "INCREASE PITCH", "DECREASE PITCH", "TEST", "ACCEPT", "CANCEL"};
     QVector< QString > voices{"en", "en-us", "en-us+f3", "en-sc", "en-n", "en-rp", "en-wm"};

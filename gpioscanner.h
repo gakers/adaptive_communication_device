@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QThread>
 #include "gpio.h"
-#include "mainwindow.h"
+//#include "mainwindow.h"
 
 class gpioScanner : public QObject
 {
@@ -11,7 +11,8 @@ class gpioScanner : public QObject
 
 public:
     explicit gpioScanner(QObject *parent = 0);
-    
+    void set_delay(int tmp);
+
 public slots:
     void doScanning();
 
@@ -20,7 +21,7 @@ signals:
     
 private:
     GPIO *gpio_up, *gpio_down, *gpio_left, *gpio_right, *gpio_select;
-    
+    int delay;
 };
 
 #endif // GPIOSCANNER_H

@@ -26,12 +26,12 @@ gpioScanner::gpioScanner(QObject *parent) : QObject( parent ) {
     QThread::msleep(50);
     gpio_select->setDir("in");
 }
+void gpioScanner::set_delay(int tmp) {
+    delay = tmp;
+}
 
 void gpioScanner::doScanning() {
-    MainWindow* parent = qobject_cast<MainWindow*>(this->parent());
-    int delay = 500;
     while(1) {
-        delay = parent->get_delay();
         QThread::msleep(50);
         if(gpio_up->getVal() == "1") {
             QThread::msleep(delay);
